@@ -19,7 +19,7 @@ my $had_today_file = 0;
 my $TEMPLATE = <<"EOT";
 <html>
 <head>
-  <title>WMUR Closings</title>
+  <title>Weather Closings</title>
   <meta http-equiv="refresh" content="300">
 </head>
 <body>
@@ -76,7 +76,7 @@ if ( $hour <= 7 || $had_today_file ) {
 		}
 	    }
 	} else {
-	    push(@errors,'Could not parse WMUR Closings html.');
+	    push(@errors,'Could not parse weatehr closings html.');
 	}
 	
 	$parser->delete;
@@ -85,7 +85,7 @@ if ( $hour <= 7 || $had_today_file ) {
 	
 	push(
 	    @errors,
-	    'Could not fetch WMUR Closings.'
+	    'Could not fetch weather closings.'
 	    );
 	
     }
