@@ -4,7 +4,6 @@ use warnings FATAL=>'all';
 
 use LWP::Simple;
 use HTML::TreeBuilder;
-use Data::Dumper;
 
 my $URL = 'https://www.wmur.com/weather/closings';
 my $OUTFILENAME = '/tmp/weather-closings.html';
@@ -39,7 +38,7 @@ if ( -f $OUTFILENAME ) {
     my @outfilestat = stat($OUTFILENAME);
     $flastmod = $outfilestat[9];
     if ( ( $now - $flastmod ) < 80000 ) {
-	$had_today_file = 1;
+        $had_today_file = 1;
     }
 }
 
@@ -76,7 +75,7 @@ if ( $hour <= 7 || $had_today_file ) {
 		}
 	    }
 	} else {
-	    push(@errors,'Could not parse weatehr closings html.');
+	    push(@errors,'Could not parse weather closings html.');
 	}
 	
 	$parser->delete;
