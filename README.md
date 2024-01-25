@@ -1,3 +1,5 @@
+=NH Weather Closings=
+
 This script looks for weather closings reported on the WMUR site and filters them for you by a list you provide (DISTRICTS).
 
 It then creates a basic HTML file with only your closings included.
@@ -6,7 +8,7 @@ It then launches chromium with those closings shown.  This is meant to be used o
 
 For our disticts we need to check every half hour from 5am to 7am because they cancel and change very late.
 
-After 7am it will keep checking only if it found something before 7am that day.  This is needed for when they change a delayed opening into a snow day.
+After 7am it will keep checking only if it found something before 7am that day, to save load on the server.  This case is needed for when they change a delayed opening into a snow day.
 
 See the crontab example for running this on a schedule.
 
