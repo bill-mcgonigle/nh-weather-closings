@@ -1,1 +1,0 @@
-  puppetgit { 'ssh://git@repo.bfccomputing.com/bfc/certs' : }
