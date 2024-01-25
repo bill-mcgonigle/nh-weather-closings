@@ -1,4 +1,4 @@
-==NH Weather Closings==
+# NH Weather Closings
 
 This script looks for weather closings reported on the WMUR site and filters them for you by a list you provide (DISTRICTS).
 
