@@ -1,5 +1,4 @@
 # NH Weather Closings
-## n.b. this is lightly tested - I'll remove this note when it works fully automated during the next snowstorm.
 
 This script looks for weather closings reported on the WMUR site and filters them for you by a list you provide (DISTRICTS).
 
