@@ -140,7 +140,7 @@ if ( $content eq '' ) {
     print OUTFILE $output;
     close OUTFILE;
 
-    my $window_titles  = `$WINDOW_TITLE_COMMAND`;
+    my $window_titles  = `$WINDOW_TITLES_COMMAND`;
     
     my @outfile_titles = grep(
 	/$OUTFILE/,
