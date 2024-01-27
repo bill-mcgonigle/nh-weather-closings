@@ -5,10 +5,16 @@ use warnings FATAL=>'all';
 use LWP::Simple;
 use HTML::TreeBuilder;
 
-my $URL = 'https://www.wmur.com/weather/closings';
-my $OUTFILENAME = '/tmp/weather-closings.html';
-my @DISTRICTS = ( 'Plainfield','Lebanon School District' );
-my $BROWSER = '/usr/bin/chromium';
+my $URL         = 'https://www.wmur.com/weather/closings';
+my $OUTDIR      = '/tmp';
+my $OUTFILE     = 'weather-closings.html';
+my $OUTFILENAME = $OUTDIR . '/' . $OUTFILE;
+my @DISTRICTS   = (
+   'Plainfield',
+   'Lebanon School District'
+);
+my $BROWSER     = '/usr/bin/chromium';
+my $WINDOW_TITLES_COMMAND = '/usr/bin/xwininfo -tree -root';
 
 my ( %closings, @errors );
 my $content = '';
@@ -30,16 +36,16 @@ CONTENT
 EOT
 
 my $now = time();
-my (undef,$min,$hour,$mday,$mon,$year,$wday,undef,undef) = localtime($now);
-$mon += 1;
+my ( undef,$min,$hour,$mday,$mon,$year,$wday,undef,undef ) = localtime( $now );
+$mon  += 1;
 $year += 1900;
 
 if ( -f $OUTFILENAME ) {
-    my @outfilestat = stat($OUTFILENAME);
-    $flastmod = $outfilestat[9];
-    if ( ( $now - $flastmod ) < 80000 ) {
-        $had_today_file = 1;
-    }
+  my @outfilestat = stat($OUTFILENAME);
+  $flastmod = $outfilestat[9];
+  if ( ( $now - $flastmod ) < 80000 ) {
+    $had_today_file = 1;
+  }
 }
 
 
@@ -52,7 +58,7 @@ if ( $hour <= 7 || $had_today_file ) {
 	my $parser = HTML::TreeBuilder->new();
 	my $parse_success = $parser->parse( $webpage );
 	$parser->eof();
-	
+
 	if ($parse_success) {
 	    foreach my $district (@DISTRICTS) {
 		my @divs = $parser->find_by_attribute(
@@ -77,18 +83,18 @@ if ( $hour <= 7 || $had_today_file ) {
 	} else {
 	    push(@errors,'Could not parse weather closings html.');
 	}
-	
+
 	$parser->delete;
-	
+
     } else {
-	
+
 	push(
 	    @errors,
 	    'Could not fetch weather closings.'
 	    );
-	
+
     }
-    
+
 } # before 7 or today_file
 
 if ( @errors ) {
@@ -100,45 +106,52 @@ if ( @errors ) {
 	    @errors
 	)
 	;
-    
-}
-    
-if ( keys %closings ) {
-    
-    foreach my $district ( keys %closings ) {
-	$content .=
-	    '<p>'
-	    . '<b>'
-	    . $district
-	    . '</b>'
-	    . join('<br>',@{ $closings{$district} })
-	    . '</p>'
-	    ;
-    }
 
+}
+
+foreach my $district ( keys %closings ) {
+  $content .=
+    '<p>'
+    . '<b>'
+    . $district
+    . '</b>'
+    . join('<br>',@{ $closings{$district} })
+    . '</p>'
+    ;
 }
 
 if ( $content eq '' ) {
 
-    if ( $flastmod > 0 ) {
+    if ( $flastmod > 0 ) {  # save a disk read
 	unlink $OUTFILENAME;
     }
-    
+
 } else {
 
     my $output = $TEMPLATE;
-	
+
     $output =~ s/CONTENT/$content/g;
 
     my $timestamp = "${hour}:${min} on ${mon}/${mday}";
-	
+
     $output =~ s/TIMESTAMP/$timestamp/g;
 
-    open  OUTFILE, ">${OUTFILENAME}" or die "Can't open > ${OUTFILENAME}: $!";
+    open  OUTFILE, ">${OUTFILENAME}" or die "Can't open > ${OUTFILENAME}: $!"; # wrong owner?
     print OUTFILE $output;
     close OUTFILE;
 
-    if ( !$had_today_file ) {
-	exec($BROWSER,$OUTFILENAME);
+    my $window_titles  = `$WINDOW_TITLE_COMMAND`;
+    
+    my @outfile_titles = grep(
+	/$OUTFILE/,
+	$window_titles
+	);
+
+    if ( !@outfile_titles ) {
+      exec(
+	   $BROWSER,
+	   $OUTFILENAME
+	  );
     }
+
 }
