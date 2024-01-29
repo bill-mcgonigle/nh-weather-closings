@@ -27,8 +27,16 @@ my $TEMPLATE = <<"EOT";
 <head>
   <title>${WINDOW_TITLE}</title>
   <meta http-equiv="refresh" content="300">
+  <script type="text/javascript">
+    function closePastNine() {
+      var now = new Date();
+      if ( now.getHours() >= 9 ) {
+        self.Close();
+      }
+    }
+  </script>   
 </head>
-<body>
+<body onLoad="javascript:closePastNine()">
  <h1>These closings are in effect</h1>
  <h3>as of: TIMESTAMP :</h3>
 CONTENT
