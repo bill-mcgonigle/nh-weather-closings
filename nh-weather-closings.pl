@@ -5,17 +5,29 @@ use warnings FATAL=>'all';
 use LWP::Simple;
 use HTML::TreeBuilder;
 
-my $URL         = 'https://www.wmur.com/weather/closings';
-my $OUTDIR      = '/tmp';
-my $OUTFILENAME = 'weather-closings.html';
-my $OUTFILE     = $OUTDIR . '/' . $OUTFILENAME;
 my @DISTRICTS   = (
    'Plainfield',
    'Lebanon School District'
 );
+my %DATA_SOURCES = (
+    'wmur' => {
+	'url'          => 'https://www.wmur.com/weather/closings',
+	'div_district' => 'data-name',
+	'div_data'     => 'weather-closings-data-status',
+	},
+    );
+my $OUTDIR      = '/tmp';
+my $OUTFILENAME = 'weather-closings.html';
+my $OUTFILE     = $OUTDIR . '/' . $OUTFILENAME;
+
 my $BROWSER               = '/usr/bin/chromium';
 my $WINDOW_TITLE          = 'Weather Closings';
 my $WINDOW_TITLES_COMMAND = '/usr/bin/xwininfo -tree -root';
+
+my $START_HOUR       = 5;
+my $END_HOUR         = 9;
+my $CUTOFF_HOUR      = 7;
+my $REFRESH_INTERVAL = 300;
 
 my ( %closings, @errors );
 my $content = '';
@@ -26,18 +38,18 @@ my $TEMPLATE = <<"EOT";
 <html>
 <head>
   <title>${WINDOW_TITLE}</title>
-  <meta http-equiv="refresh" content="300">
+  <meta http-equiv="refresh" content="${REFRESH_INTERVAL}">
   <script type="text/javascript">
-    function closePastNine() {
+    function closeAtEnd() {
       var now = new Date();
-      if ( now.getHours() >= 9 ) {
+      if ( now.getHours() >= ${END_HOUR} ) {
         window.open('','_parent',''); 
         window.close();
       }
     }
   </script>   
 </head>
-<body onLoad="javascript:closePastNine()">
+<body onLoad="javascript:closeAtEnd()">
  <h1>These closings are in effect</h1>
  <h3>as of: TIMESTAMP :</h3>
 CONTENT
@@ -53,59 +65,77 @@ $year += 1900;
 if ( -f $OUTFILE ) {
   my @outfilestat = stat($OUTFILE);
   $flastmod = $outfilestat[9];
-  if ( ( $now - $flastmod ) < 80000 ) {
+  if (
+       (
+        $now - $flastmod
+       )
+       < (
+	   (
+	     24
+	     - (
+	       $END_HOUR - $START_HOUR
+	     )
+           )
+	   * 3600
+         )
+     )
+      {
     $had_today_file = 1;
   }
 }
 
 
-if ( $hour <= 7 || $had_today_file ) {
+if ( $hour <= $CUTOFF_HOUR || $had_today_file ) {
 
-    my $webpage = get($URL);
+    foreach my $data_source (keys %DATA_SOURCES) {
 
-    if ( defined( $webpage ) ) {
+	my $webpage = get($DATA_SOURCES{$data_source}{'url'});
 
-	my $parser = HTML::TreeBuilder->new();
-	my $parse_success = $parser->parse( $webpage );
-	$parser->eof();
+	if ( defined( $webpage ) ) {
 
-	if ($parse_success) {
-	    foreach my $district (@DISTRICTS) {
-		my @divs = $parser->find_by_attribute(
-		    'data-name', $district
-		    );
-		if (@divs) {
-		    $closings{$district} = ();
-		    foreach my $div ( @divs ) {
-			my @status_messages = $div->look_down(
-			    _tag => 'div',
-			    class => 'weather-closings-data-status'
-			    );
-			foreach my $status (@status_messages) {
-			    push(
-				@{ $closings{$district} },
-				$status->as_text
+	    my $parser = HTML::TreeBuilder->new();
+	    my $parse_success = $parser->parse( $webpage );
+	    $parser->eof();
+
+	    if ($parse_success) {
+		foreach my $district (@DISTRICTS) {
+		    my @divs = $parser->find_by_attribute(
+			$DATA_SOURCES{$data_source}{'div_district'}, $district
+			);
+		    if (@divs) {
+			$closings{$district} = ();
+			foreach my $div ( @divs ) {
+			    my @status_messages = $div->look_down(
+				_tag => 'div',
+				class => $DATA_SOURCES{$data_source}{'div_data'}
 				);
+			    foreach my $status (@status_messages) {
+				push(
+				    @{ $closings{$district} },
+				    $status->as_text
+				    );
+			    }
 			}
 		    }
 		}
+	    } else {
+		push(@errors,'Could not parse weather closings html for ' . $data_source . '.');
 	    }
+
+	    $parser->delete;
+
 	} else {
-	    push(@errors,'Could not parse weather closings html.');
+
+	    push(
+		@errors,
+		'Could not fetch weather closings for ' . $data_source . '.'
+		);
+
 	}
 
-	$parser->delete;
+    } # each data_source
 
-    } else {
-
-	push(
-	    @errors,
-	    'Could not fetch weather closings.'
-	    );
-
-    }
-
-} # before 7 or today_file
+} # before $CUTOFF_HOUR or today_file
 
 if ( @errors ) {
 
@@ -146,7 +176,7 @@ if ( $content eq '' ) {
 
     $output =~ s/TIMESTAMP/$timestamp/g;
 
-    open  OUTFILE_HANDLE, ">${OUTFILE}" or die "Can't open > ${OUTFILE}: $!"; # wrong owner?
+    open  OUTFILE_HANDLE, ">${OUTFILE}" or die "Can't open > ${OUTFILE}: $! wrong owner?";
     print OUTFILE_HANDLE $output;
     close OUTFILE_HANDLE;
 
