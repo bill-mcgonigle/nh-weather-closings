@@ -16,6 +16,7 @@ my %DATA_SOURCES = (
 	'div_data'     => 'weather-closings-data-status',
 	},
     );
+
 my $OUTDIR      = '/tmp';
 my $OUTFILENAME = 'weather-closings.html';
 my $OUTFILE     = $OUTDIR . '/' . $OUTFILENAME;
@@ -24,10 +25,11 @@ my $BROWSER               = '/usr/bin/chromium';
 my $WINDOW_TITLE          = 'Weather Closings';
 my $WINDOW_TITLES_COMMAND = '/usr/bin/xwininfo -tree -root';
 
-my $START_HOUR       = 5;
-my $END_HOUR         = 9;
-my $CUTOFF_HOUR      = 7;
-my $REFRESH_INTERVAL = 300;
+my $START_HOUR       = 5;  # A.M. localtime - when to start looking
+my $END_HOUR         = 9;  # when to stop everything and close the window
+my $CUTOFF_HOUR      = 7;  # when to stop looking unless something was found earlier
+
+my $REFRESH_INTERVAL = 300; # reload the local webpage every this many seconds
 
 my ( %closings, @errors );
 my $content = '';
@@ -89,7 +91,9 @@ if ( $hour <= $CUTOFF_HOUR || $had_today_file ) {
 
     foreach my $data_source (keys %DATA_SOURCES) {
 
-	my $webpage = get($DATA_SOURCES{$data_source}{'url'});
+	my $webpage = get(
+	    $DATA_SOURCES{$data_source}{'url'}
+	    );
 
 	if ( defined( $webpage ) ) {
 
