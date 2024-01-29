@@ -31,7 +31,8 @@ my $TEMPLATE = <<"EOT";
     function closePastNine() {
       var now = new Date();
       if ( now.getHours() >= 9 ) {
-        self.Close();
+        window.open('','_parent',''); 
+        window.close();
       }
     }
   </script>   
