@@ -7,13 +7,14 @@ use HTML::TreeBuilder;
 
 my $URL         = 'https://www.wmur.com/weather/closings';
 my $OUTDIR      = '/tmp';
-my $OUTFILE     = 'weather-closings.html';
-my $OUTFILENAME = $OUTDIR . '/' . $OUTFILE;
+my $OUTFILENAME = 'weather-closings.html';
+my $OUTFILE     = $OUTDIR . '/' . $OUTFILENAME;
 my @DISTRICTS   = (
    'Plainfield',
    'Lebanon School District'
 );
-my $BROWSER     = '/usr/bin/chromium';
+my $BROWSER               = '/usr/bin/chromium';
+my $WINDOW_TITLE          = 'Weather Closings';
 my $WINDOW_TITLES_COMMAND = '/usr/bin/xwininfo -tree -root';
 
 my ( %closings, @errors );
@@ -24,7 +25,7 @@ my $had_today_file = 0;
 my $TEMPLATE = <<"EOT";
 <html>
 <head>
-  <title>Weather Closings</title>
+  <title>${WINDOW_TITLE}</title>
   <meta http-equiv="refresh" content="300">
 </head>
 <body>
@@ -40,8 +41,8 @@ my ( undef,$min,$hour,$mday,$mon,$year,$wday,undef,undef ) = localtime( $now );
 $mon  += 1;
 $year += 1900;
 
-if ( -f $OUTFILENAME ) {
-  my @outfilestat = stat($OUTFILENAME);
+if ( -f $OUTFILE ) {
+  my @outfilestat = stat($OUTFILE);
   $flastmod = $outfilestat[9];
   if ( ( $now - $flastmod ) < 80000 ) {
     $had_today_file = 1;
@@ -123,7 +124,7 @@ foreach my $district ( keys %closings ) {
 if ( $content eq '' ) {
 
     if ( $flastmod > 0 ) {  # save a disk read
-	unlink $OUTFILENAME;
+	unlink $OUTFILE;
     }
 
 } else {
@@ -136,21 +137,21 @@ if ( $content eq '' ) {
 
     $output =~ s/TIMESTAMP/$timestamp/g;
 
-    open  OUTFILE, ">${OUTFILENAME}" or die "Can't open > ${OUTFILENAME}: $!"; # wrong owner?
-    print OUTFILE $output;
-    close OUTFILE;
+    open  OUTFILE_HANDLE, ">${OUTFILE}" or die "Can't open > ${OUTFILE}: $!"; # wrong owner?
+    print OUTFILE_HANDLE $output;
+    close OUTFILE_HANDLE;
 
     my $window_titles  = `$WINDOW_TITLES_COMMAND`;
     
     my @outfile_titles = grep(
-	/$OUTFILE/,
+	/$WINDOW_TITLE/,
 	$window_titles
 	);
 
     if ( !@outfile_titles ) {
       exec(
 	   $BROWSER,
-	   $OUTFILENAME
+	   $OUTFILE
 	  );
     }
 
