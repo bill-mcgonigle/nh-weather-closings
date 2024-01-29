@@ -45,7 +45,6 @@ my $TEMPLATE = <<"EOT";
     function closeAtEnd() {
       var now = new Date();
       if ( now.getHours() >= ${END_HOUR} ) {
-        window.open('','_parent',''); 
         window.close();
       }
     }

@@ -18,6 +18,8 @@ Remember to thank the datasource providers for maintaining their service.
 
 Should the need arise the configuration could be moved to a separate file.
 
+Auto-closing the tab requires a manual setting in Firefox ... TBD on Chrom*.
+
 Current datasources:
 
   NH - WMUR
