@@ -9,12 +9,13 @@ my $DEBUG = 1;
 
 my @DISTRICTS   = (
    'Plainfield',
+   'Plainfield Elementary School',
    'Lebanon School District'
 );
 my %DATA_SOURCES = (
     'wmur' => {
 	'url'          => 'https://www.wmur.com/weather/closings',
-	'div_district' => 'weather-closings-data-name',
+	'div_district' => 'data-name',
 	'div_data'     => 'weather-closings-data-status',
 	},
     );
