@@ -12,7 +12,7 @@ my @DISTRICTS   = (
 my %DATA_SOURCES = (
     'wmur' => {
 	'url'          => 'https://www.wmur.com/weather/closings',
-	'div_district' => 'data-name',
+	'div_district' => 'weather-closings-data-name',
 	'div_data'     => 'weather-closings-data-status',
 	},
     );
