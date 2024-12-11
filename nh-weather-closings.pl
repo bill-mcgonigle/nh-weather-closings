@@ -5,7 +5,7 @@ use warnings FATAL=>'all';
 use LWP::Simple;
 use HTML::TreeBuilder;
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 
 my @DISTRICTS   = (
    'Plainfield',
